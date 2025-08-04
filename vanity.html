@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CRRD Profile</title>
+</head>
+<body>
+  <h2 id="vanityHeader">@loading...</h2>
+  <p id="bioText">Loading bio...</p>
+  <a id="linkAnchor" href="#" target="_blank" style="display: none;">Visit Link</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const path = window.location.pathname.replace("/", "").toLowerCase();
+
+    async function loadProfile() {
+      const docRef = doc(db, "vanities", path);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        document.getElementById("vanityHeader").innerText = "User not found.";
+        document.getElementById("bioText").innerText = "";
+        return;
+      }
+
+      const data = docSnap.data();
+      document.getElementById("vanityHeader").innerText = `@${path}`;
+      document.getElementById("bioText").innerText = data.bio || "No bio yet.";
+      if (data.link) {
+        const link = document.getElementById("linkAnchor");
+        link.href = data.link;
+        link.style.display = "block";
+        link.innerText = "Visit My Link";
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>
