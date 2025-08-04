@@ -1,79 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Reserve Your Vanity</title>
+  <meta charset="UTF-8">
+  <title>Sign Up | CRRD</title>
   <style>
-    body {
-      background: #0a0a0a;
-      color: white;
-      font-family: 'Poppins', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 300px;
-    }
-
-    input {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: none;
-      background: #1a1a1a;
-      color: white;
-    }
-
-    button {
-      padding: 10px;
-      background: white;
-      color: black;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-
-    .vanity {
-      margin-bottom: 20px;
-    }
+    body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+    input { padding: 10px; font-size: 16px; margin-bottom: 10px; width: 300px; }
+    button { padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
+  <h1>Claiming: <span id="vanityDisplay"></span></h1>
+  <input type="email" id="emailInput" placeholder="Enter your email" /><br>
+  <button onclick="submitClaim()">Secure Vanity</button>
 
-  <div class="vanity" id="vanityDisplay">Claiming: <strong>...</strong></div>
-
-  <form onsubmit="handleSignup(event)">
-    <input type="email" id="email" placeholder="Your email" required />
-    <button type="submit">Secure Vanity</button>
-  </form>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const vanity = urlParams.get("vanity");
-    const vanityDisplay = document.getElementById("vanityDisplay");
+    // ⚠️ Replace with your Firebase config!
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    if (vanity) {
-      vanityDisplay.innerHTML = `Claiming: <strong>${vanity}</strong>`;
-    } else {
-      vanityDisplay.innerHTML = `No vanity selected`;
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const params = new URLSearchParams(window.location.search);
+    const vanity = params.get("vanity");
+    document.getElementById("vanityDisplay").textContent = vanity;
+
+    if (!vanity) {
+      alert("No vanity selected.");
+      window.location.href = "/";
     }
 
-    function handleSignup(e) {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
+    function submitClaim() {
+      const email = document.getElementById("emailInput").value.trim();
+      if (!email || !email.includes("@")) {
+        alert("Enter a valid email.");
+        return;
+      }
 
-      // For now, just log it
-      alert(`Reserved "${vanity}" for ${email}`);
-      // In production, POST to your backend or serverless API to save it
+      const ref = db.ref("vanities/" + vanity);
+
+      ref.once("value").then(snapshot => {
+        if (snapshot.exists()) {
+          alert("Sorry, this vanity is already taken.");
+        } else {
+          const userId = crypto.randomUUID();
+          ref.set({ email, userId });
+          alert(`Success! ${vanity} has been claimed.`);
+          window.location.href = "/";
+        }
+      });
     }
   </script>
-
 </body>
 </html>
