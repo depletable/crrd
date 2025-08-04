@@ -1,29 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Edit Profile</title>
+  <title>Edit Your Profile</title>
 </head>
 <body>
-  <h1>Edit Your Profile</h1>
+  <h2>Edit Profile</h2>
   <form id="profileForm">
-    <input type="text" name="bio" placeholder="Your bio" /><br>
-    <input type="url" name="link" placeholder="Link (optional)" /><br>
-    <button type="submit">Save Profile</button>
+    <textarea id="bio" placeholder="Your bio"></textarea><br>
+    <input type="text" id="link" placeholder="Your link (https://...)"><br>
+    <button type="submit">Save</button>
   </form>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, updateDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
       projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      storageBucket: "YOUR_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
       appId: "YOUR_APP_ID"
     };
 
@@ -31,43 +29,40 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const form = document.getElementById("profileForm");
+    const urlParams = new URLSearchParams(window.location.search);
+    const vanity = urlParams.get("vanity");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         alert("You must be logged in.");
-        window.location.href = "/signup.html";
+        window.location.href = "signup.html";
         return;
       }
 
-      // Find the vanity claimed by this user
-      const q = query(collection(db, "users"), where("email", "==", user.email));
-      const snapshot = await getDocs(q);
+      const docRef = doc(db, "vanities", vanity);
+      const docSnap = await getDoc(docRef);
 
-      if (snapshot.empty) {
-        alert("No vanity claimed for this account.");
+      if (!docSnap.exists() || docSnap.data().uid !== user.uid) {
+        alert("This vanity doesn't belong to you.");
         return;
       }
 
-      const docRef = snapshot.docs[0].ref;
+      // Prefill bio and link
+      const data = docSnap.data();
+      document.getElementById("bio").value = data.bio || "";
+      document.getElementById("link").value = data.link || "";
 
-      // Pre-fill existing data
-      const data = snapshot.docs[0].data();
-      if (data.bio) form.bio.value = data.bio;
-      if (data.link) form.link.value = data.link;
-
-      form.addEventListener("submit", async (e) => {
+      document.getElementById("profileForm").addEventListener("submit", async (e) => {
         e.preventDefault();
+        const newBio = document.getElementById("bio").value;
+        const newLink = document.getElementById("link").value;
 
-        const bio = form.bio.value;
-        const link = form.link.value;
+        await updateDoc(docRef, {
+          bio: newBio,
+          link: newLink
+        });
 
-        try {
-          await updateDoc(docRef, { bio, link });
-          alert("Profile updated!");
-        } catch (err) {
-          alert("Failed to update profile: " + err.message);
-        }
+        alert("Profile updated!");
       });
     });
   </script>
