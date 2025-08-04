@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reserve Your Vanity</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      background: #1a1a1a;
+      color: white;
+    }
+
+    button {
+      padding: 10px;
+      background: white;
+      color: black;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+
+    .vanity {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="vanity" id="vanityDisplay">Claiming: <strong>...</strong></div>
+
+  <form onsubmit="handleSignup(event)">
+    <input type="email" id="email" placeholder="Your email" required />
+    <button type="submit">Secure Vanity</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const vanity = urlParams.get("vanity");
+    const vanityDisplay = document.getElementById("vanityDisplay");
+
+    if (vanity) {
+      vanityDisplay.innerHTML = `Claiming: <strong>${vanity}</strong>`;
+    } else {
+      vanityDisplay.innerHTML = `No vanity selected`;
+    }
+
+    function handleSignup(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+
+      // For now, just log it
+      alert(`Reserved "${vanity}" for ${email}`);
+      // In production, POST to your backend or serverless API to save it
+    }
+  </script>
+
+</body>
+</html>
