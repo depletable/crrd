@@ -1,67 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sign Up | CRRD</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-    input { padding: 10px; font-size: 16px; margin-bottom: 10px; width: 300px; }
-    button { padding: 10px 20px; font-size: 16px; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Claim Your Vanity</title>
 </head>
 <body>
-  <h1>Claiming: <span id="vanityDisplay"></span></h1>
-  <input type="email" id="emailInput" placeholder="Enter your email" /><br>
-  <button onclick="submitClaim()">Secure Vanity</button>
+  <h1>Secure Your Vanity URL</h1>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
+  <form id="signupForm">
+    <input type="email" name="email" placeholder="Enter your email" required />
+    <input type="password" name="password" placeholder="Create a password" required />
+    <button type="submit">Secure my vanity</button>
+  </form>
 
-  <script>
-    // ⚠️ Replace with your Firebase config!
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 🔧 Replace with your actual Firebase config
     const firebaseConfig = {
-  apiKey: "AIzaSyDgkAdH2d1z_mDDDQ50rvrlM6Y0IAmCOjw",
-  authDomain: "crrdnet.firebaseapp.com",
-  projectId: "crrdnet",
-  storageBucket: "crrdnet.firebasestorage.app",
-  messagingSenderId: "847080918618",
-  appId: "1:847080918618:web:96e96afbc710bc98b09263",
-  measurementId: "G-HPKJ720TZD"
-};
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    const params = new URLSearchParams(window.location.search);
-    const vanity = params.get("vanity");
-    document.getElementById("vanityDisplay").textContent = vanity;
+    const form = document.querySelector("#signupForm");
 
-    if (!vanity) {
-      alert("No vanity selected.");
-      window.location.href = "/";
-    }
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    function submitClaim() {
-      const email = document.getElementById("emailInput").value.trim();
-      if (!email || !email.includes("@")) {
-        alert("Enter a valid email.");
+      const email = form.email.value;
+      const password = form.password.value;
+      const params = new URLSearchParams(window.location.search);
+      const vanity = params.get("vanity");
+
+      if (!vanity || !email || !password) {
+        alert("Missing required fields.");
         return;
       }
 
-      const ref = db.ref("vanities/" + vanity);
+      const vanityRef = doc(db, "users", vanity);
+      const existing = await getDoc(vanityRef);
 
-      ref.once("value").then(snapshot => {
-        if (snapshot.exists()) {
-          alert("Sorry, this vanity is already taken.");
-        } else {
-          const userId = crypto.randomUUID();
-          ref.set({ email, userId });
-          alert(`Success! ${vanity} has been claimed.`);
-          window.location.href = "/";
-        }
-      });
-    }
+      if (existing.exists()) {
+        alert("This vanity URL is already taken!");
+        return;
+      }
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(vanityRef, {
+          email: email,
+          createdAt: new Date()
+        });
+
+        alert(`Vanity "${vanity}" secured!`);
+        window.location.href = `/`;
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
   </script>
 </body>
 </html>
