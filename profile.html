@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Profile</title>
+</head>
+<body>
+  <h1>Edit Your Profile</h1>
+  <form id="profileForm">
+    <input type="text" name="bio" placeholder="Your bio" /><br>
+    <input type="url" name="link" placeholder="Link (optional)" /><br>
+    <button type="submit">Save Profile</button>
+  </form>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, updateDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("profileForm");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("You must be logged in.");
+        window.location.href = "/signup.html";
+        return;
+      }
+
+      // Find the vanity claimed by this user
+      const q = query(collection(db, "users"), where("email", "==", user.email));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        alert("No vanity claimed for this account.");
+        return;
+      }
+
+      const docRef = snapshot.docs[0].ref;
+
+      // Pre-fill existing data
+      const data = snapshot.docs[0].data();
+      if (data.bio) form.bio.value = data.bio;
+      if (data.link) form.link.value = data.link;
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const bio = form.bio.value;
+        const link = form.link.value;
+
+        try {
+          await updateDoc(docRef, { bio, link });
+          alert("Profile updated!");
+        } catch (err) {
+          alert("Failed to update profile: " + err.message);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
