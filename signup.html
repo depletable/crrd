@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Secure Your Vanity</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 </head>
 <body>
-  <h2>Secure Your Vanity</h2>
-  <form id="signupForm">
-    <input type="email" id="email" placeholder="Email" required><br>
-    <input type="password" id="password" placeholder="Password" required><br>
-    <input type="text" id="vanity" placeholder="Your vanity (e.g. hello)" required><br>
-    <button type="submit">Secure My Vanity</button>
-  </form>
+  <h1>Secure Your Vanity</h1>
+  <input type="text" id="vanity" placeholder="Your Vanity (e.g. hello)" />
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+  <button id="signupBtn">Secure My Vanity</button>
 
-  <script type="module">
-    // Import Firebase SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  <p id="message"></p>
 
+  <script>
     const firebaseConfig = {
   apiKey: "AIzaSyDgkAdH2d1z_mDDDQ50rvrlM6Y0IAmCOjw",
   authDomain: "crrdnet.firebaseapp.com",
@@ -28,41 +27,47 @@
   measurementId: "G-HPKJ720TZD"
 };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    document.getElementById("signupForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const vanity = document.getElementById("vanity").value.trim().toLowerCase();
+    document.getElementById('signupBtn').addEventListener('click', async () => {
+      const vanity = document.getElementById('vanity').value.trim().toLowerCase();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
 
-      // Check if vanity is already taken
-      const docRef = doc(db, "vanities", vanity);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        alert("That vanity is already taken. Try another.");
-        return;
+      if (!vanity || !email || !password) {
+        return (document.getElementById('message').innerText = 'Please fill in all fields.');
+      }
+
+      // Check if vanity is taken
+      const docRef = db.collection("vanities").doc(vanity);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        return (document.getElementById('message').innerText = 'That vanity is already taken.');
       }
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        // Create user
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCred.user.uid;
 
-        // Save the vanity profile and link it to user UID
-        await setDoc(doc(db, "vanities", vanity), {
-          uid: user.uid,
+        // Save vanity
+        await db.collection("vanities").doc(vanity).set({
+          uid: uid,
           email: email,
-          bio: "",
-          link: "",
-          createdAt: Date.now()
+          createdAt: new Date(),
+          profile: {
+            name: "",
+            bio: "",
+            links: []
+          }
         });
 
-        alert("Vanity secured! Redirecting to profile editor...");
-        window.location.href = "profile.html?vanity=" + vanity;
+        // Redirect to profile editor
+        window.location.href = `profile.html?vanity=${vanity}`;
       } catch (error) {
-        alert("Error: " + error.message);
+        document.getElementById('message').innerText = error.message;
       }
     });
   </script>
