@@ -51,7 +51,9 @@ def register():
 
         return redirect(url_for("login"))
 
-    return render_template("register.html")
+    # GET method: get vanity from query params to prefill form
+    vanity = request.args.get("vanity", "")
+    return render_template("register.html", vanity=vanity)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
