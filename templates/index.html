@@ -19,7 +19,78 @@
       justify-content: center;
       overflow: hidden;
       position: relative;
+      font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding-top: 70px; /* to account for the fixed banner height */
+        color: white;
     }
+
+/* Fixed Banner */
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  z-index: 1000;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Left side of banner */
+.banner-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Logo image */
+.logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-right: 10px;
+}
+
+/* Site Title – solid white now */
+.banner-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: normal;
+  letter-spacing: 1px;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1.2rem;
+  border: 3px solid white;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  text-decoration: none;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+}
+
+/* Sign Up Button */
+.signup-btn {
+  background-color: black;
+  color: white;
+}
+
+/* Login Button */
+.login-btn {
+  background-color: white;
+  color: black;
+}
+
+/* Hover effects */
+.btn:hover {
+  opacity: 0.85;
+}
 
     /* Background CRRD */
     .background-crrd {
@@ -29,7 +100,8 @@
       transform: translate(-50%, -50%);
       font-size: 12rem;
       font-family: 'Anton', sans-serif;
-      background: linear-gradient(to right, #aee4ff, #ffd1b3, #ffb3d1);
+      line-height: 1;
+      background: linear-gradient(to right, #78d2ff, #ffc9a5, #ff94e4);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       opacity: 0;
@@ -41,7 +113,7 @@
 
     @keyframes fadeIn {
       to {
-        opacity: 0.07;
+        opacity: 0.05;
       }
     }
 
@@ -55,6 +127,7 @@
   box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
       opacity: 0;
       animation: formFadeIn 1.2s ease-in-out forwards;
+      margin-top: -70px;
     }
 
     @keyframes formFadeIn {
@@ -96,7 +169,18 @@
   </style>
 </head>
 <body>
-  <!-- Background CRRD -->
+  <!-- banner -->
+    <div class="banner">
+  <div class="banner-left">
+    <img src="{{ url_for('static', filename='assets/CRRD.png') }}" alt="CRRD Logo" class="logo" />
+    <span class="banner-title">CRRD</span>
+  </div>
+  <div class="banner-right">
+    <a href="/register" class="btn signup-btn">Sign up</a>
+    <a href="/login" class="btn login-btn">Log in</a>
+  </div>
+</div>
+    <!-- Background CRRD -->
   <div class="background-crrd">CRRD <br> CRRD <br> CRRD</div>
 
   <!-- Vanity Form -->
