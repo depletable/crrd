@@ -16,7 +16,11 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for pr
 
 @app.before_request
 def initialize():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        app.logger.error("init_db failed", exc_info=e)
+        raise
 
 DATABASE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "database.db")
 
@@ -70,7 +74,6 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        try:
             email = request.form.get("email")
             password = request.form.get("password")
 
@@ -84,9 +87,6 @@ def login():
                 return redirect(url_for("dashboard"))
             else:
                 return "Invalid email or password.", 400
-        except Exception as e:
-            print("Login error:", e)
-            return "Internal error", 500
 
     return render_template("login.html")
 
