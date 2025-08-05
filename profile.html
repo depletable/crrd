@@ -1,69 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Edit Your Profile</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    textarea, input {
+      display: block;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <h2>Edit Profile</h2>
+
+  <h2>Edit Your Profile</h2>
+
   <form id="profileForm">
-    <textarea id="bio" placeholder="Your bio"></textarea><br>
-    <input type="text" id="link" placeholder="Your link (https://...)"><br>
+    <textarea id="bio" placeholder="Your bio..."></textarea>
+    <input type="url" id="link" placeholder="Your link (https://...)">
     <button type="submit">Save</button>
   </form>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  <p id="message"></p>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDgkAdH2d1z_mDDDQ50rvrlM6Y0IAmCOjw",
-  authDomain: "crrdnet.firebaseapp.com",
-  projectId: "crrdnet",
-  storageBucket: "crrdnet.firebasestorage.app",
-  messagingSenderId: "847080918618",
-  appId: "1:847080918618:web:96e96afbc710bc98b09263",
-  measurementId: "G-HPKJ720TZD"
-};
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgkAdH2d1z_mDDDQ50rvrlM6Y0IAmCOjw",
+      authDomain: "crrdnet.firebaseapp.com",
+      projectId: "crrdnet",
+      storageBucket: "crrdnet.appspot.com",
+      messagingSenderId: "847080918618",
+      appId: "1:847080918618:web:96e96afbc710bc98b09263",
+      measurementId: "G-HPKJ720TZD"
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
     const urlParams = new URLSearchParams(window.location.search);
     const vanity = urlParams.get("vanity");
 
-    onAuthStateChanged(auth, async (user) => {
+    if (!vanity) {
+      alert("No vanity specified.");
+      window.location.href = "index.html";
+    }
+
+    auth.onAuthStateChanged(async (user) => {
       if (!user) {
         alert("You must be logged in.");
         window.location.href = "signup.html";
         return;
       }
 
-      const docRef = doc(db, "vanities", vanity);
-      const docSnap = await getDoc(docRef);
+      const docRef = db.collection("vanities").doc(vanity);
+      const docSnap = await docRef.get();
 
-      if (!docSnap.exists() || docSnap.data().uid !== user.uid) {
+      if (!docSnap.exists || docSnap.data().uid !== user.uid) {
         alert("This vanity doesn't belong to you.");
         return;
       }
 
-      // Prefill bio and link
       const data = docSnap.data();
-      document.getElementById("bio").value = data.bio || "";
-      document.getElementById("link").value = data.link || "";
+      document.getElementById("bio").value = data.profile?.bio || "";
+      document.getElementById("link").value = data.profile?.links?.[0] || "";
 
       document.getElementById("profileForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const newBio = document.getElementById("bio").value;
-        const newLink = document.getElementById("link").value;
 
-        await updateDoc(docRef, {
-          bio: newBio,
-          link: newLink
-        });
+        const newBio = document.getElementById("bio").value.trim();
+        const newLink = document.getElementById("link").value.trim();
+        const msg = document.getElementById("message");
 
-        alert("Profile updated!");
+        try {
+          await docRef.update({
+            "profile.bio": newBio,
+            "profile.links": newLink ? [newLink] : []
+          });
+          msg.innerText = "Profile updated!";
+        } catch (err) {
+          msg.innerText = "Error saving profile: " + err.message;
+        }
       });
     });
   </script>
