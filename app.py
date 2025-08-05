@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for prod!
 
 # Setup serializer
 serializer = URLSafeTimedSerializer(app.secret_key)
@@ -18,8 +19,6 @@ def init_db():
                 db.executescript(f.read())
             db.commit()
 
-
-app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for prod!
 
 @app.before_request
 def initialize():
