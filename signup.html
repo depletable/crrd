@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>Secure Your Vanity</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <h1>Secure Your Vanity</h1>
+
   <input type="text" id="vanity" placeholder="Your Vanity (e.g. hello)" />
   <input type="email" id="email" placeholder="Email" />
   <input type="password" id="password" placeholder="Password" />
@@ -18,14 +21,14 @@
 
   <script>
     const firebaseConfig = {
-  apiKey: "AIzaSyDgkAdH2d1z_mDDDQ50rvrlM6Y0IAmCOjw",
-  authDomain: "crrdnet.firebaseapp.com",
-  projectId: "crrdnet",
-  storageBucket: "crrdnet.firebasestorage.app",
-  messagingSenderId: "847080918618",
-  appId: "1:847080918618:web:96e96afbc710bc98b09263",
-  measurementId: "G-HPKJ720TZD"
-};
+      apiKey: "AIzaSyDgkAdH2d1z_mDDDQ50rvrlM6Y0IAmCOjw",
+      authDomain: "crrdnet.firebaseapp.com",
+      projectId: "crrdnet",
+      storageBucket: "crrdnet.appspot.com", // Fix: this had a typo earlier
+      messagingSenderId: "847080918618",
+      appId: "1:847080918618:web:96e96afbc710bc98b09263",
+      measurementId: "G-HPKJ720TZD"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -35,24 +38,24 @@
       const vanity = document.getElementById('vanity').value.trim().toLowerCase();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+      const msg = document.getElementById('message');
 
       if (!vanity || !email || !password) {
-        return (document.getElementById('message').innerText = 'Please fill in all fields.');
+        msg.innerText = 'Please fill in all fields.';
+        return;
       }
 
-      // Check if vanity is taken
       const docRef = db.collection("vanities").doc(vanity);
       const docSnap = await docRef.get();
       if (docSnap.exists) {
-        return (document.getElementById('message').innerText = 'That vanity is already taken.');
+        msg.innerText = 'That vanity is already taken.';
+        return;
       }
 
       try {
-        // Create user
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCred.user.uid;
 
-        // Save vanity
         await db.collection("vanities").doc(vanity).set({
           uid: uid,
           email: email,
@@ -64,10 +67,9 @@
           }
         });
 
-        // Redirect to profile editor
         window.location.href = `profile.html?vanity=${vanity}`;
       } catch (error) {
-        document.getElementById('message').innerText = error.message;
+        msg.innerText = error.message;
       }
     });
   </script>
