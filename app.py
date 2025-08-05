@@ -1,7 +1,12 @@
 import os
 import sqlite3
+import secrets
 from flask import Flask, g, render_template, request, redirect, session, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import URLSafeTimedSerializer
+
+# Setup serializer
+serializer = URLSafeTimedSerializer(app.secret_key)
 
 def init_db():
     if not os.path.exists(DATABASE):
@@ -126,6 +131,27 @@ def claim():
         return redirect(url_for("index"))
     # redirect to register with vanity prefilled as query param
     return redirect(url_for("register") + f"?vanity={vanity}")
+
+# Setup serializer
+serializer = URLSafeTimedSerializer(app.secret_key)
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email")
+        db = get_db()
+        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+
+        if user:
+            token = serializer.dumps(email, salt="password-reset-salt")
+            reset_url = url_for("reset_password", token=token, _external=True)
+
+            # In production, you'd email this. For now, display it:
+            return f"Password reset link: <a href='{reset_url}'>{reset_url}</a>"
+
+        return "If that email exists, a reset link was generated."
+
+    return render_template("forgot_password.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
