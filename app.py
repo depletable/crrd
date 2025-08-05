@@ -68,19 +68,23 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        try:
+            email = request.form.get("email")
+            password = request.form.get("password")
 
-        db = get_db()
-        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+            db = get_db()
+            user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
-        if user and check_password_hash(user["password"], password):
-            session.clear()
-            session["user_id"] = user["id"]
-            session["vanity"] = user["vanity"]
-            return redirect(url_for("dashboard"))
-        else:
-            return "Invalid email or password.", 400
+            if user and check_password_hash(user["password"], password):
+                session.clear()
+                session["user_id"] = user["id"]
+                session["vanity"] = user["vanity"]
+                return redirect(url_for("dashboard"))
+            else:
+                return "Invalid email or password.", 400
+        except Exception as e:
+            print("Login error:", e)
+            return "Internal error", 500
 
     return render_template("login.html")
 
