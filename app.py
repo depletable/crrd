@@ -14,7 +14,7 @@ def init_db():
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for prod!
 
-@app.before_first_request
+@app.before_request
 def initialize():
     init_db()
 
