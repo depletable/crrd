@@ -27,7 +27,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 15rem;
+      font-size: 12rem;
       font-family: 'Anton', sans-serif;
       background: linear-gradient(to right, #aee4ff, #ffd1b3, #ffb3d1);
       -webkit-background-clip: text;
@@ -41,7 +41,7 @@
 
     @keyframes fadeIn {
       to {
-        opacity: 0.15;
+        opacity: 0.07;
       }
     }
 
@@ -50,9 +50,9 @@
       position: relative;
       z-index: 1;
       display: flex;
-      border: 3px solid white;
-      border-radius: 15px;
-      box-shadow: 0 0 25px rgba(255, 255, 255, 0.1);
+  border: 3px solid white;
+  border-radius: 30px;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
       opacity: 0;
       animation: formFadeIn 1.2s ease-in-out forwards;
     }
@@ -66,12 +66,12 @@
     input[type="text"] {
       padding: 1rem;
       border: none;
-      border-radius: 15px 0 0 15px;
+      border-radius: 30px 0 0 30px;
       background-color: black;
       color: white;
-      font-size: 2rem;
+      font-size: 1rem;
       outline: none;
-      width: 300px;
+      width: 250px;
     }
 
     button {
@@ -81,7 +81,7 @@
       color: black;
       font-weight: bold;
       font-size: 1rem;
-      border-radius: 0 15px 15px 0;
+      border-radius: 0 30px 30px 0;
       cursor: pointer;
       transition: background-color 0.3s;
     }
@@ -97,7 +97,7 @@
 </head>
 <body>
   <!-- Background CRRD -->
-  <div class="background-crrd">CRRD</div>
+  <div class="background-crrd">CRRD <br> CRRD <br> CRRD</div>
 
   <!-- Vanity Form -->
   <div class="form-wrapper">
