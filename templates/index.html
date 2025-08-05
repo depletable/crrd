@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>{{ profile.vanity }} | crrd</title>
+    <meta charset="UTF-8" />
+    <title>crrd - Claim your vanity</title>
 </head>
 <body>
-  <h2>This is {{ profile.vanity }}'s crrd</h2>
-  <ul>
-    <li><a href="{{ profile.link1 or '#' }}">Link 1</a></li>
-    <li><a href="{{ profile.link2 or '#' }}">Link 2</a></li>
-    <li><a href="{{ profile.link3 or '#' }}">Link 3</a></li>
-  </ul>
+    <h1>Welcome to crrd!</h1>
+
+    <form id="claimForm" action="/register" method="get">
+        <input type="text" name="vanity" placeholder="Enter vanity" required />
+        <button type="submit">Claim</button>
+    </form>
 </body>
 </html>
