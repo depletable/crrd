@@ -14,7 +14,9 @@ def init_db():
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for prod!
 
-init_db()
+@app.before_first_request
+def initialize():
+    init_db()
 
 DATABASE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "database.db")
 
