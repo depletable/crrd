@@ -1,12 +1,12 @@
-import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, g, flash
-from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import sqlite3
+from flask import Flask, g, render_template, request, redirect, session, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for prod!
 
-DATABASE = "database.db"
+DATABASE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "database.db")
 
 def get_db():
     db = getattr(g, "_database", None)
@@ -27,91 +27,87 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == "GET":
-        vanity = request.args.get("vanity", "")
-        return render_template("register.html", vanity=vanity)
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        vanity = request.form.get("vanity")
 
-@app.route("/<vanity>")
-def profile(vanity):
-    try:
+        if not email or not password or not vanity:
+            return "Email, password, and vanity are required.", 400
+
         db = get_db()
-        cur = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,))
-        user = cur.fetchone()
-        if user is None:
-            return "Vanity not found", 404
-        return render_template("profile.html", profile=user)
-    except Exception as e:
-        return f"Error loading profile: {e}", 500
 
-    # POST method: process registration
-    vanity = request.form.get("vanity", "").strip()
-    email = request.form.get("email", "").strip()
-    password = request.form.get("password", "")
+        # Check if vanity or email already exists
+        user_check = db.execute("SELECT * FROM users WHERE email = ? OR vanity = ?", (email, vanity)).fetchone()
+        if user_check:
+            return "Email or vanity already taken.", 400
 
-    if not vanity or not email or not password:
-        flash("All fields are required.")
-        return redirect(url_for("register", vanity=vanity))
+        hashed_pw = generate_password_hash(password)
+        db.execute(
+            "INSERT INTO users (email, password, vanity) VALUES (?, ?, ?)",
+            (email, hashed_pw, vanity)
+        )
+        db.commit()
 
-    db = get_db()
+        return redirect(url_for("login"))
 
-    # Check if vanity is taken
-    cur = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,))
-    if cur.fetchone():
-        flash("Vanity is already taken.")
-        return redirect(url_for("register"))
-
-    # Check if email is taken
-    cur = db.execute("SELECT * FROM users WHERE email = ?", (email,))
-    if cur.fetchone():
-        flash("Email is already registered.")
-        return redirect(url_for("register", vanity=vanity))
-
-    hashed_password = generate_password_hash(password)
-
-    db.execute(
-        "INSERT INTO users (vanity, email, password) VALUES (?, ?, ?)",
-        (vanity, email, hashed_password),
-    )
-    db.commit()
-    flash("Registration successful. Please log in.")
-    return redirect(url_for("login"))
+    return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "GET":
-        return render_template("login.html")
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
 
-    email = request.form.get("email", "").strip()
-    password = request.form.get("password", "")
+        db = get_db()
+        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
-    if not email or not password:
-        flash("Email and password are required.")
-        return redirect(url_for("login"))
+        if user and check_password_hash(user["password"], password):
+            session.clear()
+            session["user_id"] = user["id"]
+            session["vanity"] = user["vanity"]
+            return redirect(url_for("dashboard"))
+        else:
+            return "Invalid email or password.", 400
 
-    db = get_db()
-    cur = db.execute("SELECT * FROM users WHERE email = ?", (email,))
-    user = cur.fetchone()
-
-    if user is None or not check_password_hash(user["password"], password):
-        flash("Invalid email or password.")
-        return redirect(url_for("login"))
-
-    session["user_id"] = user["id"]
-    session["vanity"] = user["vanity"]
-    flash("Logged in successfully.")
-    return redirect(url_for("dashboard"))
-
-@app.route("/dashboard")
-def dashboard():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-    return render_template("dashboard.html", vanity=session.get("vanity"))
+    return render_template("login.html")
 
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Logged out successfully.")
     return redirect(url_for("index"))
+
+def login_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    return render_template("dashboard.html", profile=user)
+
+@app.route("/<vanity>")
+def profile(vanity):
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,)).fetchone()
+    if user is None:
+        return "Vanity not found", 404
+    return render_template("profile.html", profile=user)
+
+@app.route("/claim", methods=["POST"])
+def claim():
+    vanity = request.form.get("vanity")
+    if not vanity:
+        return redirect(url_for("index"))
+    # redirect to register with vanity prefilled as query param
+    return redirect(url_for("register") + f"?vanity={vanity}")
 
 if __name__ == "__main__":
     app.run(debug=True)
