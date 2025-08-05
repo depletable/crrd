@@ -33,14 +33,15 @@ def register():
 
 @app.route("/<vanity>")
 def profile(vanity):
-    db = get_db()
-    cur = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,))
-    user = cur.fetchone()
-    if user is None:
-        return "Vanity not found", 404
-    # You can customize this template to show user links, etc.
-    return render_template("profile.html", profile=user)
-
+    try:
+        db = get_db()
+        cur = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,))
+        user = cur.fetchone()
+        if user is None:
+            return "Vanity not found", 404
+        return render_template("profile.html", profile=user)
+    except Exception as e:
+        return f"Error loading profile: {e}", 500
 
     # POST method: process registration
     vanity = request.form.get("vanity", "").strip()
