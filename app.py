@@ -31,6 +31,17 @@ def register():
         vanity = request.args.get("vanity", "")
         return render_template("register.html", vanity=vanity)
 
+@app.route("/<vanity>")
+def profile(vanity):
+    db = get_db()
+    cur = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,))
+    user = cur.fetchone()
+    if user is None:
+        return "Vanity not found", 404
+    # You can customize this template to show user links, etc.
+    return render_template("profile.html", profile=user)
+
+
     # POST method: process registration
     vanity = request.form.get("vanity", "").strip()
     email = request.form.get("email", "").strip()
