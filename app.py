@@ -3,8 +3,18 @@ import sqlite3
 from flask import Flask, g, render_template, request, redirect, session, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 
+def init_db():
+    if not os.path.exists(DATABASE):
+        with app.app_context():
+            db = get_db()
+            with open("schema.sql", "r") as f:
+                db.executescript(f.read())
+            db.commit()
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")  # Change for prod!
+
+init_db()
 
 DATABASE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "database.db")
 
