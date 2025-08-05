@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ profile.vanity }} | crrd</title>
+</head>
+<body>
+  <h2>This is {{ profile.vanity }}'s crrd</h2>
+  <ul>
+    <li><a href="{{ profile.link1 or '#' }}">Link 1</a></li>
+    <li><a href="{{ profile.link2 or '#' }}">Link 2</a></li>
+    <li><a href="{{ profile.link3 or '#' }}">Link 3</a></li>
+  </ul>
+</body>
+</html>
