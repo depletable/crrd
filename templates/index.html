@@ -46,18 +46,10 @@
   align-items: center;
 }
 
-/* Logo image */
-.logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  margin-right: 10px;
-}
-
 /* Site Title – solid white now */
 .banner-title {
   font-family: 'Anton', sans-serif;
-  font-size: 1.5rem;
+  font-size: 2rem;
   background: linear-gradient(to right, #A3FFB7, #ADFFD9, #A8F5FF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -65,6 +57,7 @@
   color: transparent;
   font-weight: normal;
   letter-spacing: 1px;
+  margin-left: 10px;
 }
 
 /* Buttons */
@@ -176,7 +169,6 @@
   <!-- banner -->
     <div class="banner">
   <div class="banner-left">
-    <img src="{{ url_for('static', filename='assets/CRRD1.png') }}" alt="CRRD Logo" class="logo" />
     <span class="banner-title">CRRD</span>
   </div>
   <div class="banner-right">
