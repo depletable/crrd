@@ -1,8 +1,9 @@
 -- Create users table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    vanity TEXT NOT NULL UNIQUE
 );
 
 -- Create profiles table
