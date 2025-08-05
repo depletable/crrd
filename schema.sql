@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE NOT NULL,
+    vanity TEXT UNIQUE NOT NULL,
+    link1 TEXT,
+    link2 TEXT,
+    link3 TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
