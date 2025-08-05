@@ -1,98 +1,105 @@
-from flask import Flask, render_template, request, redirect, session, g
 import sqlite3
-import os
+from flask import Flask, render_template, request, redirect, url_for, session, g, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 app = Flask(__name__)
-app.secret_key = '07d97cdea578a2936f2701ae3da4b325'  # <-- Replace with something random and secure
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")
 
-DATABASE = 'database.db'
+DATABASE = "database.db"
 
-# Connect to the database
 def get_db():
-    if 'db' not in g:
-        g.db = sqlite3.connect(DATABASE)
-        g.db.row_factory = sqlite3.Row
-    return g.db
+    db = getattr(g, "_database", None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row
+    return db
 
-# Close database connection
 @app.teardown_appcontext
-def close_db(exception):
-    db = g.pop('db', None)
+def close_connection(exception):
+    db = getattr(g, "_database", None)
     if db is not None:
         db.close()
 
-# Homepage
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html', profile=None)
+    return render_template("index.html")
 
-# User registration
-@app.route('/register', methods=['GET', 'POST'])
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
+    if request.method == "GET":
+        vanity = request.args.get("vanity", "")
+        return render_template("register.html", vanity=vanity)
 
-        db = get_db()
-        try:
-            db.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
-            db.commit()
-            return redirect('/login')
-        except sqlite3.IntegrityError:
-            return "That email is already registered."
-    return render_template('register.html')
+    # POST method: process registration
+    vanity = request.form.get("vanity", "").strip()
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
 
-# Login
-@app.route('/login', methods=['GET', 'POST'])
+    if not vanity or not email or not password:
+        flash("All fields are required.")
+        return redirect(url_for("register", vanity=vanity))
+
+    db = get_db()
+
+    # Check if vanity is taken
+    cur = db.execute("SELECT * FROM users WHERE vanity = ?", (vanity,))
+    if cur.fetchone():
+        flash("Vanity is already taken.")
+        return redirect(url_for("register"))
+
+    # Check if email is taken
+    cur = db.execute("SELECT * FROM users WHERE email = ?", (email,))
+    if cur.fetchone():
+        flash("Email is already registered.")
+        return redirect(url_for("register", vanity=vanity))
+
+    hashed_password = generate_password_hash(password)
+
+    db.execute(
+        "INSERT INTO users (vanity, email, password) VALUES (?, ?, ?)",
+        (vanity, email, hashed_password),
+    )
+    db.commit()
+    flash("Registration successful. Please log in.")
+    return redirect(url_for("login"))
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+    if request.method == "GET":
+        return render_template("login.html")
 
-        db = get_db()
-        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
 
-        if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['id']
-            return redirect('/dashboard')
-        else:
-            return "Invalid login."
-    return render_template('login.html')
+    if not email or not password:
+        flash("Email and password are required.")
+        return redirect(url_for("login"))
 
-# Dashboard
-@app.route('/dashboard', methods=['GET', 'POST'])
+    db = get_db()
+    cur = db.execute("SELECT * FROM users WHERE email = ?", (email,))
+    user = cur.fetchone()
+
+    if user is None or not check_password_hash(user["password"], password):
+        flash("Invalid email or password.")
+        return redirect(url_for("login"))
+
+    session["user_id"] = user["id"]
+    session["vanity"] = user["vanity"]
+    flash("Logged in successfully.")
+    return redirect(url_for("dashboard"))
+
+@app.route("/dashboard")
 def dashboard():
-    if 'user_id' not in session:
-        return redirect('/login')
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    return render_template("dashboard.html", vanity=session.get("vanity"))
 
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE id = ?", (session['user_id'],)).fetchone()
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Logged out successfully.")
+    return redirect(url_for("index"))
 
-    if request.method == 'POST':
-        vanity = request.form['vanity']
-        try:
-            db.execute("INSERT INTO profiles (user_id, vanity) VALUES (?, ?)", (user['id'], vanity))
-            db.commit()
-        except sqlite3.IntegrityError:
-            return "That vanity is already taken."
-
-    profile = db.execute("SELECT * FROM profiles WHERE user_id = ?", (user['id'],)).fetchone()
-    return render_template('dashboard.html', profile=profile)
-
-# Public vanity page
-@app.route('/<vanity>')
-def vanity_profile(vanity):
-    db = get_db()
-    profile = db.execute("SELECT * FROM profiles WHERE vanity = ?", (vanity,)).fetchone()
-
-    if not profile:
-        return "Profile not found.", 404
-
-    user = db.execute("SELECT * FROM users WHERE id = ?", (profile['user_id'],)).fetchone()
-
-    return render_template("vanity.html", profile=profile, user=user)
-
-# Run the app
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
