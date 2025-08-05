@@ -153,5 +153,25 @@ def forgot_password():
 
     return render_template("forgot_password.html")
 
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    try:
+        email = serializer.loads(token, salt="password-reset-salt", max_age=3600)
+    except Exception:
+        return "Reset link is invalid or expired."
+
+    if request.method == "POST":
+        new_password = request.form.get("password")
+        hashed_pw = generate_password_hash(new_password)
+
+        db = get_db()
+        db.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_pw, email))
+        db.commit()
+
+        return redirect(url_for("login"))
+
+    return render_template("reset_password.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
