@@ -192,6 +192,7 @@ def reset_password(token):
     return render_template("reset_password.html")
 
 @app.route("/migration")
+@login_required
 def migrate():
     db = get_db()
     db.execute("ALTER TABLE users ADD COLUMN display_name TEXT")
