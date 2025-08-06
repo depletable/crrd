@@ -207,6 +207,10 @@ def migrate():
     except Exception as e:
         return f"Migration failed: {e}"
 
+@app.route("/whoami")
+@login_required
+def whoami():
+    return f"Your user ID is: {session['user_id']}"
 
 if __name__ == "__main__":
     app.run(debug=True)
