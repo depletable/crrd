@@ -13,6 +13,11 @@
 
   <h1>{{ profile.display_name or profile.vanity }}</h1>
 
+    <div class="profile-header">
+  <h1>{{ profile.display_name or profile.vanity }}</h1>
+  <p style="font-size: 0.8rem; color: gray;">User ID: {{ profile.id }}</p>
+</div>
+
   {% if profile.bio %}
     <p class="bio">{{ profile.bio }}</p>
   {% endif %}
