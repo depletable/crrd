@@ -13,5 +13,34 @@
       <button type="submit">Claim</button>
     </form>
   {% endif %}
+  <h2>Customize Your Vanity Page</h2>
+<form method="POST">
+  <label>Display Name:</label>
+  <input type="text" name="display_name" value="{{ profile.display_name or '' }}">
+
+  <label>Profile Picture URL:</label>
+  <input type="text" name="avatar_url" value="{{ profile.avatar_url or '' }}">
+
+  <label>Bio:</label>
+  <textarea name="bio">{{ profile.bio or '' }}</textarea>
+
+  <label>Card Size:</label>
+  <select name="card_size">
+    <option value="small" {% if profile.card_size == 'small' %}selected{% endif %}>Small</option>
+    <option value="medium" {% if profile.card_size == 'medium' or not profile.card_size %}selected{% endif %}>Medium</option>
+    <option value="large" {% if profile.card_size == 'large' %}selected{% endif %}>Large</option>
+  </select>
+
+  <label>Twitter:</label>
+  <input type="text" name="twitter" value="{{ profile.twitter or '' }}">
+
+  <label>GitHub:</label>
+  <input type="text" name="github" value="{{ profile.github or '' }}">
+
+  <label>Website:</label>
+  <input type="text" name="website" value="{{ profile.website or '' }}">
+
+  <button type="submit">Save Changes</button>
+</form>
 </body>
 </html>
