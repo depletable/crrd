@@ -192,26 +192,18 @@ def reset_password(token):
     return render_template("reset_password.html")
 
 @app.route("/migration")
-@login_required
-def migration():
-    if session.get("user_id") != 2:  # Replace 1 with your actual admin user_id
-        return "Unauthorized", 403
-
+@login_required  # protects route
+def migrate():
     db = get_db()
-    try:
-        db.execute("ALTER TABLE users ADD COLUMN display_name TEXT")
-        db.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
-        db.execute("ALTER TABLE users ADD COLUMN bio TEXT")
-        db.execute("ALTER TABLE users ADD COLUMN card_size TEXT")
-        db.execute("ALTER TABLE users ADD COLUMN twitter TEXT")
-        db.execute("ALTER TABLE users ADD COLUMN github TEXT")
-        db.execute("ALTER TABLE users ADD COLUMN website TEXT")
-        db.commit()
-    except sqlite3.OperationalError:
-        return "Migration already completed or columns already exist."
-    
-    return "Migration complete!"
-
+    db.execute("ALTER TABLE users ADD COLUMN display_name TEXT")
+    db.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
+    db.execute("ALTER TABLE users ADD COLUMN bio TEXT")
+    db.execute("ALTER TABLE users ADD COLUMN card_size TEXT")
+    db.execute("ALTER TABLE users ADD COLUMN twitter TEXT")
+    db.execute("ALTER TABLE users ADD COLUMN github TEXT")
+    db.execute("ALTER TABLE users ADD COLUMN website TEXT")
+    db.commit()
+    return "Migration complete."
 
 if __name__ == "__main__":
     app.run(debug=True)
