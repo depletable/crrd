@@ -5,11 +5,28 @@
     <title>{{ profile.vanity }} | crrd</title>
 </head>
 <body>
-    <h1>This is {{ profile.vanity }}'s crrd</h1>
-    <ul>
-        <li><a href="#">Link 1</a></li>
-        <li><a href="#">Link 2</a></li>
-        <li><a href="#">Link 3</a></li>
-    </ul>
+  <div class="profile-card {{ profile.card_size or 'medium' }}">
+  {% if profile.avatar_url %}
+    <img class="avatar" src="{{ profile.avatar_url }}" alt="Avatar">
+  {% endif %}
+
+  <h1>{{ profile.display_name or profile.vanity }}</h1>
+
+  {% if profile.bio %}
+    <p class="bio">{{ profile.bio }}</p>
+  {% endif %}
+
+  <div class="social-links">
+    {% if profile.twitter %}
+      <a href="https://twitter.com/{{ profile.twitter }}" target="_blank">Twitter</a>
+    {% endif %}
+    {% if profile.github %}
+      <a href="https://github.com/{{ profile.github }}" target="_blank">GitHub</a>
+    {% endif %}
+    {% if profile.website %}
+      <a href="{{ profile.website }}" target="_blank">Website</a>
+    {% endif %}
+  </div>
+</div>
 </body>
 </html>
