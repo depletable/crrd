@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>{{ profile.vanity }} | crrd</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="profile-card {{ profile.card_size or 'medium' }}">
