@@ -191,26 +191,27 @@ def reset_password(token):
 
     return render_template("reset_password.html")
 
-@app.route("/migrate")
-def migrate():
+@app.route("/migration")
+@login_required
+def migration():
+    if session.get("user_id") != 2:  # Replace 1 with your actual admin user_id
+        return "Unauthorized", 403
+
     db = get_db()
     try:
-        db.execute("ALTER TABLE users ADD COLUMN display_name TEXT;")
-        db.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT;")
-        db.execute("ALTER TABLE users ADD COLUMN bio TEXT;")
-        db.execute("ALTER TABLE users ADD COLUMN card_size TEXT;")
-        db.execute("ALTER TABLE users ADD COLUMN twitter TEXT;")
-        db.execute("ALTER TABLE users ADD COLUMN github TEXT;")
-        db.execute("ALTER TABLE users ADD COLUMN website TEXT;")
+        db.execute("ALTER TABLE users ADD COLUMN display_name TEXT")
+        db.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
+        db.execute("ALTER TABLE users ADD COLUMN bio TEXT")
+        db.execute("ALTER TABLE users ADD COLUMN card_size TEXT")
+        db.execute("ALTER TABLE users ADD COLUMN twitter TEXT")
+        db.execute("ALTER TABLE users ADD COLUMN github TEXT")
+        db.execute("ALTER TABLE users ADD COLUMN website TEXT")
         db.commit()
-        return "Migration complete."
-    except Exception as e:
-        return f"Migration failed: {e}"
+    except sqlite3.OperationalError:
+        return "Migration already completed or columns already exist."
+    
+    return "Migration complete!"
 
-@app.route("/whoami")
-@login_required
-def whoami():
-    return f"Your user ID is: {session['user_id']}"
 
 if __name__ == "__main__":
     app.run(debug=True)
