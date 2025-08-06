@@ -110,10 +110,28 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def dashboard():
     db = get_db()
+
+    if request.method == "POST":
+        display_name = request.form.get("display_name")
+        avatar_url = request.form.get("avatar_url")
+        bio = request.form.get("bio")
+        card_size = request.form.get("card_size")
+        twitter = request.form.get("twitter")
+        github = request.form.get("github")
+        website = request.form.get("website")
+
+        db.execute("""
+            UPDATE users SET
+                display_name = ?, avatar_url = ?, bio = ?, card_size = ?,
+                twitter = ?, github = ?, website = ?
+            WHERE id = ?
+        """, (display_name, avatar_url, bio, card_size, twitter, github, website, session["user_id"]))
+        db.commit()
+
     user = db.execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchone()
     return render_template("dashboard.html", profile=user)
 
