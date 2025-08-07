@@ -51,33 +51,46 @@ from werkzeug.security import generate_password_hash
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    error = None
-    if request.method == "POST":
-        vanity = request.form["vanity"]
-        email = request.form["email"]
-        password = request.form["password"]
+    db = get_db()  # Connect to the database
 
-        # Check if the vanity or email already exists
+    if request.method == "POST":
+        vanity = request.form.get("vanity")
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        # Optional: Check if all fields are filled
+        if not vanity or not email or not password:
+            return render_template("register.html", error="Please fill in all fields.")
+
+        # Check if user already exists
         existing_user = db.execute(
-            "SELECT * FROM users WHERE vanity = ? OR email = ?", (vanity, email)
+            "SELECT * FROM users WHERE vanity = ? OR email = ?",
+            (vanity, email)
         ).fetchone()
 
         if existing_user:
-            error = "Email or vanity already taken"
-        else:
-            hashed_password = generate_password_hash(password)
-            db.execute(
-                "INSERT INTO users (vanity, email, password) VALUES (?, ?, ?)",
-                (vanity, email, hashed_password)
-            )
-            db.commit()
+            return render_template("register.html", error="Vanity or email already in use.")
 
-            # Auto login after register
-            user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-            session["user_id"] = user["id"]
-            return redirect("/dashboard")
+        # Insert new user
+        db.execute(
+            """
+            INSERT INTO users (vanity, email, password)
+            VALUES (?, ?, ?)
+            """,
+            (vanity, email, generate_password_hash(password))
+        )
+        db.commit()
 
-    return render_template("register.html", error=error)
+        # Log the user in after registration
+        user = db.execute(
+            "SELECT * FROM users WHERE vanity = ?",
+            (vanity,)
+        ).fetchone()
+
+        session["user_id"] = user["id"]
+        return redirect("/dashboard")
+
+    return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
