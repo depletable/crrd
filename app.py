@@ -79,22 +79,19 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == "POST":
-            email = request.form.get("email")
-            password = request.form.get("password")
+        email = request.form["email"]
+        password = request.form["password"]
+        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
-            db = get_db()
-            user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-
-            if user and check_password_hash(user["password"], password):
-                session.clear()
-                session["user_id"] = user["id"]
-                session["vanity"] = user["vanity"]
-                return redirect(url_for("dashboard"))
-            else:
-                return "Invalid email or password.", 400
-
-    return render_template("login.html")
+        if user is None or not check_password_hash(user["password"], password):
+            error = "Invalid email or password"
+        else:
+            session["user_id"] = user["id"]
+            return redirect("/dashboard")
+    
+    return render_template("login.html", error=error)
 
 @app.route("/logout")
 def logout():
