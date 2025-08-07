@@ -1,19 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Login | crrd</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Login - CRRD</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h2>Login to crrd</h2>
-  <form method="post">
-    Email: <input name="email" type="email" required><br>
-    Password: <input name="password" type="password" required><br>
-    <button type="submit">Login</button>
-  </form>
-  <p style="margin-top: 1rem;">
-  <a href="{{ url_for('forgot_password') }}" style="color: #ccc; font-size: 0.9rem;">Forgot your password?</a>
-</p>
-  <p>Don't have an account? <a href="/register">Register</a></p>
+  <header>
+    <div class="logo-area">
+      <span class="gradient-text">CRRD</span>
+    </div>
+  </header>
+
+  <main class="form-page">
+    <div class="form-card">
+      <img src="{{ url_for('static', filename='assets/crrd_logo.png') }}" alt="CRRD Logo" class="logo-img">
+
+      <form method="POST" action="/login">
+        <input type="text" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        {% if error %}
+          <p class="error-message">{{ error }}</p>
+        {% endif %}
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </main>
 </body>
 </html>
