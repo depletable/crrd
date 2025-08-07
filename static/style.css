@@ -75,100 +75,132 @@ body {
     color: #ff94e4;
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: black;
-  color: white;
-}
-
+/* Header / Logo */
 header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  padding: 1rem 2rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 1rem 2rem;
 }
 
 .logo-area .gradient-text {
-  font-family: 'Anton', sans-serif;
-  font-size: 2rem;
-  letter-spacing: 1px;
-  background: linear-gradient(90deg, #A3FFB7, #ADFFD9, #A8F5FF);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+    font-family: 'Anton', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #A3FFB7, #ADFFD9, #A8F5FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
+/* Login/Register Pages */
 .form-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
 .form-card {
-  width: 350px;
-  height: 400px;
-  background-color: #050505;
-  border-radius: 12px;
-  padding: 2rem;
-  position: relative;
-  border: 4px solid transparent;
-  background-clip: padding-box;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    width: 350px;
+    height: 400px;
+    background-color: #050505;
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    border: 4px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .form-card::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #A3FFB7, #ADFFD9, #A8F5FF);
-  z-index: -1;
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #A3FFB7, #ADFFD9, #A8F5FF);
+    z-index: -1;
 }
 
 .logo-img {
-  display: block;
-  margin: 0 auto 1.5rem;
-  height: 60px;
+    display: block;
+    margin: 0 auto 1.5rem;
+    height: 60px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.form-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-input {
-  padding: 0.75rem;
-  border-radius: 8px;
-  background-color: #121212;
-  border: none;
-  color: white;
-  font-size: 1rem;
-  outline: none;
+.form-card input {
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: #121212;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    outline: none;
 }
 
-button {
-  padding: 0.75rem;
-  border-radius: 8px;
-  background-color: white;
-  color: black;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  transition: background 0.3s;
+.form-card button {
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
 }
 
-button:hover {
-  background-color: #ddd;
+.form-card button:hover {
+    background-color: #ddd;
 }
 
 .error-message {
-  color: #ff7b7b;
-  font-size: 0.9rem;
-  margin-top: -0.5rem;
-  margin-bottom: -0.5rem;
+    color: #ff7b7b;
+    font-size: 0.9rem;
+    margin-top: -0.5rem;
+    margin-bottom: -0.5rem;
+}
+
+/* Home Page Vanity Form */
+.form-wrapper {
+    display: flex;
+    border: 3px solid white;
+    border-radius: 30px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.form-wrapper input[type="text"] {
+    padding: 1rem;
+    border: none;
+    border-radius: 30px 0 0 30px;
+    background-color: black;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    width: 100%;
+}
+
+.form-wrapper button {
+    padding: 1rem 2rem;
+    border: none;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: 0 30px 30px 0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.form-wrapper button:hover {
+    background-color: #ddd;
 }
