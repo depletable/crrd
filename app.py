@@ -47,35 +47,37 @@ def close_connection(exception):
 def index():
     return render_template("index.html")
 
+from werkzeug.security import generate_password_hash
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    error = None
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        vanity = request.form.get("vanity")
+        vanity = request.form["vanity"]
+        email = request.form["email"]
+        password = request.form["password"]
 
-        if not email or not password or not vanity:
-            return "Email, password, and vanity are required.", 400
+        # Check if the vanity or email already exists
+        existing_user = db.execute(
+            "SELECT * FROM users WHERE vanity = ? OR email = ?", (vanity, email)
+        ).fetchone()
 
-        db = get_db()
+        if existing_user:
+            error = "Email or vanity already taken"
+        else:
+            hashed_password = generate_password_hash(password)
+            db.execute(
+                "INSERT INTO users (vanity, email, password) VALUES (?, ?, ?)",
+                (vanity, email, hashed_password)
+            )
+            db.commit()
 
-        # Check if vanity or email already exists
-        user_check = db.execute("SELECT * FROM users WHERE email = ? OR vanity = ?", (email, vanity)).fetchone()
-        if user_check:
-            return "Email or vanity already taken.", 400
+            # Auto login after register
+            user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+            session["user_id"] = user["id"]
+            return redirect("/dashboard")
 
-        hashed_pw = generate_password_hash(password)
-        db.execute(
-            "INSERT INTO users (email, password, vanity) VALUES (?, ?, ?)",
-            (email, hashed_pw, vanity)
-        )
-        db.commit()
-
-        return redirect(url_for("login"))
-
-    # GET method: get vanity from query params to prefill form
-    vanity = request.args.get("vanity", "")
-    return render_template("register.html", vanity=vanity)
+    return render_template("register.html", error=error)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
